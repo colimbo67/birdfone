@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BirdFone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #171717;
+    --surface2: #1f1f1f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0ede8;
+    --muted: #8a8580;
+    --accent: #c8b89a;
+    --accent2: #a08060;
+    --bubble-me: #2a2218;
+    --bubble-them: #1e1e1e;
+    --danger: #c0614a;
+    --radius: 12px;
+    --radius-sm: 7px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Auth screens ── */
+  #auth-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .auth-box {
+    width: 100%;
+    max-width: 380px;
+  }
+  .auth-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--accent);
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .auth-tagline {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 36px;
+  }
+  .auth-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border2);
+  }
+  .auth-tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .auth-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--accent2); }
+  .form-input::placeholder { color: var(--muted); }
+  .btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--accent);
+    color: #1a1610;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .form-error {
+    font-size: 12px;
+    color: var(--danger);
+    margin-top: 10px;
+    min-height: 18px;
+  }
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+  }
+  .num-card-label { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .num-card-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 38px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 4px;
+  }
+  .num-card-hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* ── App layout ── */
+  #app-screen {
+    display: none;
+    height: 100vh;
+    flex-direction: row;
+  }
+  #app-screen.visible { display: flex; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-top {
+    padding: 18px 16px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sidebar-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--accent);
+  }
+  .my-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+  }
+  .sidebar-search {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-search input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 12px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    outline: none;
+  }
+  .sidebar-search input::placeholder { color: var(--muted); }
+  .contact-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 0;
+  }
+  .contact-list::-webkit-scrollbar { width: 4px; }
+  .contact-list::-webkit-scrollbar-track { background: transparent; }
+  .contact-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .contact-item:hover { background: var(--surface2); }
+  .contact-item.active {
+    background: var(--surface2);
+    border-left-color: var(--accent);
+  }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .contact-info { min-width: 0; }
+  .contact-name {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .contact-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .sidebar-bottom {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sidebar-me { display: flex; align-items: center; gap: 10px; }
+  .sidebar-me-name { font-size: 13px; font-weight: 500; }
+  .sidebar-me-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .logout-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .logout-btn:hover { color: var(--text); border-color: var(--border2); }
+
+  /* Chat area */
+  .chat-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    min-width: 0;
+  }
+  .chat-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    gap: 10px;
+  }
+  .chat-empty-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    color: var(--border2);
+  }
+  .chat-empty-text { font-size: 13px; }
+  .chat-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+  }
+  .chat-header-info h3 { font-size: 14px; font-weight: 500; }
+  .chat-header-info p { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  .msg-row { display: flex; }
+  .msg-row.me { justify-content: flex-end; }
+  .msg-row.them { justify-content: flex-start; }
+  .msg-bubble {
+    max-width: 65%;
+    padding: 9px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+  .msg-row.me .msg-bubble {
+    background: var(--bubble-me);
+    border: 1px solid rgba(200,184,154,0.15);
+    border-bottom-right-radius: 4px;
+    color: var(--text);
+  }
+  .msg-row.them .msg-bubble {
+    background: var(--bubble-them);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .msg-time {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+    padding: 0 4px;
+  }
+  .msg-row.me .msg-time { text-align: right; }
+  .chat-input-area {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--surface);
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 22px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .chat-input:focus { border-color: var(--accent2); }
+  .chat-input::placeholder { color: var(--muted); }
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .send-btn:hover { opacity: 0.85; }
+  .send-btn:active { transform: scale(0.94); }
+  .send-btn svg { width: 16px; height: 16px; fill: #1a1610; }
+
+  .loading-dots { display: inline-flex; gap: 4px; }
+  .loading-dots span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--muted);
+    animation: blink 1.2s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+  .date-divider {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin: 10px 0;
+    position: relative;
+  }
+  .date-divider::before, .date-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: var(--border);
+  }
+  .date-divider::before { left: 0; }
+  .date-divider::after { right: 0; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .sidebar { width: 200px; min-width: 200px; }
+    .msg-bubble { max-width: 80%; }
+  }
+  @media (max-width: 440px) {
+    .sidebar { display: none; }
+    #app-screen.visible { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── AUTH ── -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">BirdFone</div>
+    <div class="auth-tagline">Mensajes directos entre personas reales</div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Iniciar sesión</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Registrarse</button>
+    </div>
+
+    <!-- Login -->
+    <div id="form-login">
+      <div class="form-group">
+        <label class="form-label">Usuario</label>
+        <input class="form-input" id="login-user" type="text" placeholder="tu nombre de usuario" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Entrar</button>
+      <div class="form-error" id="login-error"></div>
+    </div>
+
+    <!-- Register -->
+    <div id="form-register" style="display:none">
+      <div id="reg-step-1">
+        <div class="form-group">
+          <label class="form-label">Nombre de usuario</label>
+          <input class="form-input" id="reg-user" type="text" placeholder="elige tu nombre" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input class="form-input" id="reg-pass" type="password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Repite la contraseña</label>
+          <input class="form-input" id="reg-pass2" type="password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <button class="btn btn-primary" id="reg-btn" onclick="doRegister()">Crear cuenta</button>
+        <div class="form-error" id="reg-error"></div>
+      </div>
+      <div id="reg-step-2" style="display:none">
+        <div class="num-card">
+          <div class="num-card-label">Tu número BirdFone</div>
+          <div class="num-card-number" id="assigned-number">—</div>
+          <div class="num-card-hint">Compártelo para que te encuentren</div>
+        </div>
+        <button class="btn btn-primary" onclick="goToApp()">Ir al chat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app-screen">
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <span class="sidebar-logo">BirdFone</span>
+      <span class="my-badge" id="top-num">…</span>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" id="search-input" placeholder="Buscar usuario..." oninput="filterContacts()">
+    </div>
+    <div class="contact-list" id="contact-list"></div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-me">
+        <div class="avatar" id="me-avatar">?</div>
+        <div>
+          <div class="sidebar-me-name" id="me-name">—</div>
+          <div class="sidebar-me-num" id="me-num">—</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="chat-panel" id="chat-panel">
+    <div class="chat-empty" id="chat-empty">
+      <div class="chat-empty-logo">BirdFone</div>
+      <div class="chat-empty-text">Selecciona una conversación</div>
+    </div>
+    <div id="chat-active" style="display:none; flex:1; flex-direction:column; display:none;">
+      <div class="chat-header" id="chat-header"></div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-area">
+        <input class="chat-input" id="msg-input" type="text" placeholder="Escribe un mensaje…" onkeydown="if(event.key==='Enter')sendMessage()">
+        <button class="send-btn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────
+// Reemplaza esta URL con la de tu Web App de Apps Script después de publicarla
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxmUMEVi1L42Rzfr8j2ThT39IWJiU13E9gfOjRWZZZCFxeGu9rzXG721CvP6XcxO1zTcg/exec';
+
+// ── Estado ───────────────────────────────────
+let me = null;
+let allUsers = [];
+let currentChat = null;
+let pollInterval = null;
+
+// ── Helpers ──────────────────────────────────
+async function api(data) {
+  const res = await fetch(BACKEND_URL, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'text/plain' }
+  });
+  return res.json();
+}
+
+function initials(name) {
+  return name.slice(0, 2).toUpperCase();
+}
+
+function formatTime(iso) {
+  const d = new Date(iso);
+  return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  const today = new Date();
+  const isToday = d.toDateString() === today.toDateString();
+  if (isToday) return 'Hoy';
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.textContent = loading ? '…' : btn.dataset.label;
+}
+
+// ── Auth tabs ─────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('form-login').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('reg-error').textContent = '';
+}
+
+// ── Login ─────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim().toLowerCase();
+  const password = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+
+  if (!username || !password) { err.textContent = 'Completa todos los campos'; return; }
+
+  btn.disabled = true;
+  btn.textContent = '…';
+  err.textContent = '';
+
+  try {
+    const r = await api({ action: 'login', username, password });
+    if (r.ok) {
+      me = { username: r.username, numero: r.numero };
+      sessionStorage.setItem('bf_me', JSON.stringify(me));
+      enterApp();
+    } else {
+      err.textContent = r.error || 'Error al iniciar sesión';
+    }
+  } catch {
+    err.textContent = 'No se pudo conectar al servidor';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Entrar';
+}
+
+// ── Register ──────────────────────────────────
+async function doRegister() {
+  const username = document.getElementById('reg-user').value.trim().toLowerCase();
+  const password = document.getElementById('reg-pass').value;
+  const password2 = document.getElementById('reg-pass2').value;
+  const err = document.getElementById('reg-error');
+  const btn = document.getElementById('reg-btn');
+
+  if (!username || !password || !password2) { err.textContent = 'Completa todos los campos'; return; }
+  if (password !== password2) { err.textContent = 'Las contraseñas no coinciden'; return; }
+  if (password.length < 4) { err.textContent = 'Mínimo 4 caracteres'; return; }
+  if (!/^[a-z0-9_]+$/.test(username)) { err.textContent = 'Solo letras, números y guión bajo'; return; }
+
+  btn.disabled = true;
+  btn.textContent = '…';
+  err.textContent = '';
+
+  try {
+    const r = await api({ action: 'register', username, password });
+    if (r.ok) {
+      me = { username: r.username, numero: r.numero };
+      sessionStorage.setItem('bf_me', JSON.stringify(me));
+      document.getElementById('assigned-number').textContent = r.numero;
+      document.getElementById('reg-step-1').style.display = 'none';
+      document.getElementById('reg-step-2').style.display = '';
+    } else {
+      err.textContent = r.error || 'Error al registrarse';
+    }
+  } catch {
+    err.textContent = 'No se pudo conectar al servidor';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Crear cuenta';
+}
+
+function goToApp() {
+  enterApp();
+}
+
+// ── App ───────────────────────────────────────
+function enterApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').classList.add('visible');
+
+  document.getElementById('me-name').textContent = me.username;
+  document.getElementById('me-num').textContent = '#' + me.numero;
+  document.getElementById('me-avatar').textContent = initials(me.username);
+  document.getElementById('top-num').textContent = '#' + me.numero;
+
+  loadUsers();
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(() => {
+    if (currentChat) loadMessages(currentChat, false);
+    loadUsers();
+  }, 5000);
+}
+
+async function loadUsers() {
+  try {
+    const r = await api({ action: 'getUsers', username: me.username });
+    if (r.ok) {
+      allUsers = r.users;
+      renderContacts(allUsers);
+    }
+  } catch {}
+}
+
+function renderContacts(users) {
+  const list = document.getElementById('contact-list');
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const filtered = users.filter(u => u.username.includes(search) || String(u.numero).includes(search));
+  list.innerHTML = '';
+  filtered.forEach(u => {
+    const div = document.createElement('div');
+    div.className = 'contact-item' + (currentChat === u.username ? ' active' : '');
+    div.innerHTML = `
+      <div class="avatar">${initials(u.username)}</div>
+      <div class="contact-info">
+        <div class="contact-name">${u.username}</div>
+        <div class="contact-num">#${u.numero}</div>
+      </div>`;
+    div.onclick = () => openChat(u.username, u.numero);
+    list.appendChild(div);
+  });
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="padding:20px 16px;color:var(--muted);font-size:12px;">Sin resultados</div>';
+  }
+}
+
+function filterContacts() {
+  renderContacts(allUsers);
+}
+
+function openChat(username, numero) {
+  currentChat = username;
+  renderContacts(allUsers);
+
+  document.getElementById('chat-empty').style.display = 'none';
+  const active = document.getElementById('chat-active');
+  active.style.display = 'flex';
+  active.style.flexDirection = 'column';
+  active.style.flex = '1';
+
+  document.getElementById('chat-header').innerHTML = `
+    <div class="avatar">${initials(username)}</div>
+    <div class="chat-header-info">
+      <h3>${username}</h3>
+      <p>#${numero}</p>
+    </div>`;
+
+  loadMessages(username, true);
+}
+
+async function loadMessages(username, scrollToBottom) {
+  try {
+    const r = await api({ action: 'getMessages', username: me.username, other: username });
+    if (r.ok) renderMessages(r.messages, scrollToBottom);
+  } catch {}
+}
+
+function renderMessages(messages, scrollToBottom) {
+  const container = document.getElementById('chat-messages');
+  container.innerHTML = '';
+
+  let lastDate = null;
+  messages.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+  messages.forEach(msg => {
+    const date = formatDate(msg.fecha);
+    if (date !== lastDate) {
+      const divider = document.createElement('div');
+      divider.className = 'date-divider';
+      divider.textContent = date;
+      container.appendChild(divider);
+      lastDate = date;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'msg-row ' + (msg.de === me.username ? 'me' : 'them');
+    row.innerHTML = `
+      <div>
+        <div class="msg-bubble">${escapeHtml(msg.texto)}</div>
+        <div class="msg-time">${formatTime(msg.fecha)}</div>
+      </div>`;
+    container.appendChild(row);
+  });
+
+  if (scrollToBottom) container.scrollTop = container.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text || !currentChat) return;
+
+  input.value = '';
+  try {
+    await api({ action: 'sendMessage', from: me.username, to: currentChat, text });
+    loadMessages(currentChat, true);
+  } catch {}
+}
+
+function logout() {
+  sessionStorage.removeItem('bf_me');
+  me = null;
+  currentChat = null;
+  if (pollInterval) clearInterval(pollInterval);
+  document.getElementById('app-screen').classList.remove('visible');
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+  switchTab('login');
+}
+
+// ── Arranque ──────────────────────────────────
+const saved = sessionStorage.getItem('bf_me');
+if (saved) {
+  me = JSON.parse(saved);
+  enterApp();
+}
+</script>
+</body>
+</html>
