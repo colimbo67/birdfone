@@ -523,7 +523,7 @@
 <script>
 // ── CONFIG ───────────────────────────────────
 // Reemplaza esta URL con la de tu Web App de Apps Script después de publicarla
-const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxmUMEVi1L42Rzfr8j2ThT39IWJiU13E9gfOjRWZZZCFxeGu9rzXG721CvP6XcxO1zTcg/exec';
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbze7XmGiNVil7974Da3qxfOkYUuZVqNhWjEb834KZmNBp6lCIpRi6qmMtNgpr0yakAp/exec';
 
 // ── Estado ───────────────────────────────────
 let me = null;
@@ -533,11 +533,8 @@ let pollInterval = null;
 
 // ── Helpers ──────────────────────────────────
 async function api(data) {
-  const res = await fetch(BACKEND_URL, {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: { 'Content-Type': 'text/plain' }
-  });
+  const params = new URLSearchParams(data).toString();
+  const res = await fetch(BACKEND_URL + '?' + params);
   return res.json();
 }
 
